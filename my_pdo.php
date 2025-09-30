@@ -1,5 +1,4 @@
 <?php
-
 class my_pdo extends PDO {
 	private $fetch_mode = PDO::FETCH_OBJ;
 	public $last_sql = "";
@@ -16,14 +15,12 @@ class my_pdo extends PDO {
 				parent::__construct("sqlite:$pdo_host");
 				break;
 			case 'odbc': // MS Access
+            case 'msacc' : // MS Access
 				parent::__construct("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=$pdo_host;Uid=Admin");
 				break;
 			case 'hana': // ODBC actually
 				//parent::__construct("DRIVER={HDBODBC32};UID=$pdo_user;PWD=$pdo_password; SERVERNODE=qlctcst7000:32115;DATABASENAME=DL1");
 				parent::__construct("odbc:DL1","pedrotti","Feder1c0");
-				break;
-            case 'msacc' : // MS Access
-				parent::__construct("odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};Dbq=$pdo_host;Uid=Admin");
 				break;
 
 		} 
@@ -205,7 +202,7 @@ class my_pdo extends PDO {
 		$fld_list = substr($fld_list,0,-1);
 		$val_list = substr($val_list,0,-1);
 		$sql = "INSERT INTO $table ($fld_list) VALUES ($val_list)";
-		//echo $sql . "\n";
+		echo $sql . "\n";
 		if ($this->exec($sql) == 1) {
 			if ($this->lastInsertId()) {
 				return $this->lastInsertId();
@@ -393,6 +390,3 @@ function GET_UPDATE_SQL($object, $table, $key = 'id') {
 		return $sql;
 	}
 }
-
-
-?>
