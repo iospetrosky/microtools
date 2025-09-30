@@ -1,0 +1,26 @@
+
+<head>
+    <script>
+        function DetectAgent() {
+           var uagent = navigator.userAgent.toLowerCase();
+           if (uagent.search("mobi") > -1)
+              return 'mobile';
+           else
+              return 'desktop';
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+
+<html>
+    <H2>This is the microtools root</H2>
+    <P>You must know the exact link of the tool you want to execute</P>
+    <P>
+    <script>
+        document.write("Browser is " + DetectAgent());
+
+
+    </script>
+    </P>
+</html>
