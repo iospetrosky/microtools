@@ -1,16 +1,9 @@
-Change the following script so that parameter sensor may be a comma separated list. 
-The SQL query will filter by all the possible values, which are strings. 
-The chart must display a dataset for each value.
-
-
 <?php
 $host = "";
 $user = "";
 $password = "";
 $database = "";
 
-
-// Determine environment and set DB credentials
 if (is_dir("/home/pi/WWW/lampone")) {
     $host = "localhost";
     $user = "pi";
@@ -23,34 +16,48 @@ if (is_dir("/home/pi/WWW/lampone")) {
     $database = "4689889_sensors";
 }
 
-//get sensor name from GET parameter
-$sensor = isset($_GET['sensor']) ? $_GET['sensor'] : null;
-if ($sensor == null) {
-    die("Sensor parameter is required.\n");
-}
+$sensorParam = $_GET['sensor'] ?? '';
+$sensorList = array_map('trim', explode(',', $sensorParam));
 
-// Connect to MySQL
 $conn = mysqli_connect($host, $user, $password, $database);
-
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error() . "\n");
+    die("Connection failed: " . mysqli_connect_error());
 }
 
-// Fetch data
-$sql = "SELECT timec, rval FROM readings where sensor = '$sensor'  ORDER BY id ASC";
-$result = $conn->query($sql);
+$labels = [];
+$datasets = [];
 
-$timec = [];
-$rval = [];
+foreach ($sensorList as $sensor) {
+    $sensorEscaped = mysqli_real_escape_string($conn, $sensor);
+    $sql = "SELECT timec, rval FROM readings WHERE sensor = '$sensorEscaped' ORDER BY id ASC";
+    $result = $conn->query($sql);
 
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+    $timec = [];
+    $rval = [];
+
+    while ($row = $result->fetch_assoc()) {
         $timec[] = $row['timec'];
         $rval[] = $row['rval'];
     }
-} else {
-    die( "0 results");
+    // keep only the last 40 entries
+    $timec = array_slice($timec, -40);  
+    $rval  = array_slice($rval, -40);
+
+    if (count($timec) > count($labels)) {
+        // keep always the longest labels array
+        $labels = $timec;
+    }
+
+
+    $datasets[] = [
+        'label' => strtoupper($sensor),
+        'data' => $rval,
+        'borderColor' => 'rgba(' . rand(50,200) . ',' . rand(50,200) . ',' . rand(50,200) . ',1)',
+        'backgroundColor' => 'rgba(75,192,192,0.2)',
+        'borderWidth' => 2
+    ];
 }
+
 $conn->close();
 ?>
 
@@ -72,29 +79,23 @@ $conn->close();
 <body>
 
 <canvas id="lineChart" width="800" height="600"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const ctx = document.getElementById('lineChart').getContext('2d');
-    const lineChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: <?php echo json_encode($timec); ?>,
-            datasets: [{
-                label: '<?php echo strtoupper(htmlspecialchars($sensor)); ?>',
-                data: <?php echo json_encode($rval); ?>,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+const ctx = document.getElementById('lineChart').getContext('2d');
+const lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: <?php echo json_encode($labels); ?>,
+        datasets: <?php echo json_encode($datasets); ?>
+    },
+    options: {
+        scales: {
+            y: {
+                beginAtZero: true
             }
         }
-    });
+    }
+});
 </script>
-
 </body>
 </html>
