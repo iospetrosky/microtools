@@ -18,14 +18,15 @@ function make_sql() {
 
 
 echo "<PRE>";
-/*
-echo $_GET["id"] . "\n";
-echo $_GET["newname"] . "\n";
-echo $_GET["delete"] . "\n";
-*/
+
+// echo $_GET["id"] . "\n";
+// echo $_GET["newname"] . "\n";
+// echo $_GET["delete"] . "\n";
+
 $con = new mysqli("localhost", "pi", "emberlee1", "iam");
+echo "con";
 if ($con->connect_errno) {
-    printf("connection failed: %s\n", $con->connect_error());
+    printf("connection failed: %s\n", $con->connect_error);
     exit();
 } else {
     printf("DB connection OK\n");
